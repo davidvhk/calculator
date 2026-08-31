@@ -57,15 +57,20 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
+  height: 100vh;
+  width: 100vw;
   padding: 16px;
   color: var(--text-main);
   transition: background-color 0.25s ease;
+  overflow: hidden;
 }
 
 #app {
   width: 100%;
-  max-width: 360px;
+  height: 100%;
+  max-width: 400px;
+  max-height: 680px;
+  display: flex;
 }
 
 .calculator-card {
@@ -75,14 +80,37 @@ body {
   box-shadow: 0 12px 32px var(--shadow-color);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
+  width: 100%;
+  height: 100%;
   transition: all 0.25s ease;
+}
+
+/* Standalone PWA Window Mode (Installed App) */
+@media (display-mode: standalone), (display-mode: window-controls-overlay) {
+  body {
+    padding: 0;
+    background-color: var(--card-bg);
+  }
+
+  #app {
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .calculator-card {
+    border-radius: 0;
+    box-shadow: none;
+    padding: 16px;
+    height: 100vh;
+  }
 }
 
 .calc-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex: 0 0 auto;
 }
 
 .header-actions {
@@ -116,12 +144,14 @@ body {
 .display-container {
   background: var(--display-bg);
   border-radius: 16px;
-  padding: 18px;
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   align-items: flex-end;
-  min-height: 96px;
+  min-height: 84px;
+  max-height: 120px;
+  flex: 0 0 auto;
   overflow: hidden;
 }
 
@@ -146,15 +176,19 @@ body {
 .keypad {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  grid-template-rows: repeat(5, 1fr);
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
 }
 
 .key {
   appearance: none;
   border: none;
   border-radius: 16px;
-  height: 56px;
-  font-size: 20px;
+  height: 100%;
+  min-height: 44px;
+  font-size: clamp(18px, 3vh, 24px);
   font-weight: 600;
   cursor: pointer;
   display: flex;
