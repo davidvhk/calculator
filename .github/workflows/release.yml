@@ -1,0 +1,38 @@
+name: Release & Deployment
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    name: Build & Create Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build PWA Production Bundle
+        run: npm run build
+
+      - name: Package Dist Bundle
+        run: tar -czf calculator-pwa-${{ github.ref_name }}.tar.gz -C dist .
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: calculator-pwa-${{ github.ref_name }}.tar.gz
+          generate_release_notes: true

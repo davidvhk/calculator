@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#1e1e2e" />
+    <meta name="description" content="Fast, offline-first calculator for Chromebook & Linux" />
+    <link rel="apple-touch-icon" href="/pwa-192x192.png" />
+    <title>Calculator</title>
+  </head>
+  <body>
+    <div id="app">
+      <main class="calculator-card">
+        <header class="calc-header">
+          <span class="app-title">Calculator</span>
+          <div class="header-actions">
+            <button id="about-btn" class="icon-button" title="About Calculator" aria-label="About">
+              ℹ️
+            </button>
+            <button id="theme-toggle" class="icon-button" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
+              🌓
+            </button>
+          </div>
+        </header>
+
+        <section class="display-container" aria-live="polite">
+          <div id="history-display" class="history-display"></div>
+          <div id="main-display" class="main-display">0</div>
+        </section>
+
+        <section class="keypad" role="grid">
+          <button class="key func" data-action="clear" aria-label="Clear All">AC</button>
+          <button class="key func" data-action="toggle-sign" aria-label="Positive or Negative">±</button>
+          <button class="key func" data-action="percent" aria-label="Percent">%</button>
+          <button class="key op" data-action="divide" aria-label="Divide">÷</button>
+
+          <button class="key num" data-digit="7">7</button>
+          <button class="key num" data-digit="8">8</button>
+          <button class="key num" data-digit="9">9</button>
+          <button class="key op" data-action="multiply" aria-label="Multiply">×</button>
+
+          <button class="key num" data-digit="4">4</button>
+          <button class="key num" data-digit="5">5</button>
+          <button class="key num" data-digit="6">6</button>
+          <button class="key op" data-action="subtract" aria-label="Subtract">−</button>
+
+          <button class="key num" data-digit="1">1</button>
+          <button class="key num" data-digit="2">2</button>
+          <button class="key num" data-digit="3">3</button>
+          <button class="key op" data-action="add" aria-label="Add">+</button>
+
+          <button class="key num zero" data-digit="0">0</button>
+          <button class="key num" data-action="decimal">.</button>
+          <button class="key func" data-action="backspace" aria-label="Backspace">⌫</button>
+          <button class="key equals" data-action="equals" aria-label="Equals">=</button>
+        </section>
+      </main>
+
+      <!-- About Dialog / Modal -->
+      <dialog id="about-modal" class="about-dialog">
+        <div class="about-content">
+          <div class="about-header">
+            <div class="about-badge">v1.0.0</div>
+            <h2>Chromebook Calculator</h2>
+          </div>
+          <p class="about-desc">
+            A fast, offline-first Progressive Web App designed for ChromeOS and Linux desktop environments.
+          </p>
+          <hr class="about-divider" />
+          <div class="about-details">
+            <div class="about-row">
+              <span class="label">Author</span>
+              <span class="value">David Vanhoucke</span>
+            </div>
+            <div class="about-row">
+              <span class="label">Contact</span>
+              <a class="value link" href="mailto:vanhouckedavid@gmail.com">vanhouckedavid@gmail.com</a>
+            </div>
+            <div class="about-row">
+              <span class="label">License</span>
+              <span class="value">GNU AGPLv3</span>
+            </div>
+            <div class="about-row">
+              <span class="label">Copyright</span>
+              <span class="value">&copy; 2026 David Vanhoucke</span>
+            </div>
+          </div>
+          <button id="close-about-btn" class="close-btn" aria-label="Close dialog">Close</button>
+        </div>
+      </dialog>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

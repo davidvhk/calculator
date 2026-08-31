@@ -1,0 +1,29 @@
+{
+  "name": "calculator-pwa",
+  "private": false,
+  "version": "1.0.0",
+  "description": "A fast, offline-first calculator for Chromebook (ChromeOS) and Linux",
+  "author": "David Vanhoucke <vanhouckedavid@gmail.com>",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^8.57.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.2",
+    "vite-plugin-pwa": "^0.20.1",
+    "vitest": "^2.0.5"
+  }
+}
