@@ -178,11 +178,19 @@ body {
   overflow: hidden;
   position: relative;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: background-color 0.15s ease, transform 0.08s ease;
 }
 
 .display-container:hover {
   filter: brightness(1.04);
+}
+
+.display-container:active {
+  transform: scale(0.99);
 }
 
 .copy-toast {

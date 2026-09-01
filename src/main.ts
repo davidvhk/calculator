@@ -377,26 +377,58 @@ soundToggleBtn?.addEventListener('click', () => {
 });
 
 // Click to Copy Display Value
-displayContainer?.addEventListener('click', async () => {
+async function copyToClipboard(text: string): Promise<boolean> {
+  // 1. Try Modern Async Clipboard API
+  if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      // Continue to fallback
+    }
+  }
+
+  // 2. Mobile-friendly iOS Safari / Android / WebKit Fallback
+  try {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.setAttribute('readonly', '');
+    textArea.style.position = 'fixed';
+    textArea.style.top = '0';
+    textArea.style.left = '0';
+    textArea.style.width = '2em';
+    textArea.style.height = '2em';
+    textArea.style.padding = '0';
+    textArea.style.border = 'none';
+    textArea.style.outline = 'none';
+    textArea.style.boxShadow = 'none';
+    textArea.style.background = 'transparent';
+    textArea.style.fontSize = '16px'; // Prevents auto-zoom on iOS Safari
+
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    textArea.setSelectionRange(0, text.length);
+
+    const successful = document.execCommand('copy');
+    document.body.removeChild(textArea);
+    return successful;
+  } catch (err) {
+    console.error('Clipboard copy failed: ', err);
+    return false;
+  }
+}
+
+// Click / Tap to Copy Display Value
+displayContainer?.addEventListener('click', async (e: MouseEvent | TouchEvent) => {
+  e.preventDefault();
   const val = calc.getState().currentValue;
   if (val === 'Error') return;
-  try {
-    if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(val);
-    } else {
-      const textarea = document.createElement('textarea');
-      textarea.value = val;
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textarea);
-    }
-    triggerHaptic();
-    playKeySound();
-    showToast('Copied!');
-  } catch {
-    showToast('Copied: ' + val);
-  }
+
+  const success = await copyToClipboard(val);
+  triggerHaptic();
+  playKeySound();
+  showToast(success ? 'Copied!' : 'Copied: ' + val);
 });
 
 // Clipboard Paste Support (Ctrl+V / Cmd+V)
