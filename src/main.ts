@@ -378,37 +378,45 @@ soundToggleBtn?.addEventListener('click', () => {
 
 // Click to Copy Display Value
 async function copyToClipboard(text: string): Promise<boolean> {
-  // 1. Try Modern Async Clipboard API
-  if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+  // Method 1: Modern Async Clipboard API
+  if (window.isSecureContext && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
     try {
       await navigator.clipboard.writeText(text);
       return true;
     } catch {
-      // Continue to fallback
+      // Fall through to fallback
     }
   }
 
-  // 2. Mobile-friendly iOS Safari / Android / WebKit Fallback
+  // Method 2: Synchronous Selection / ExecCommand Fallback (Works on iOS Safari & Android)
   try {
     const textArea = document.createElement('textarea');
     textArea.value = text;
     textArea.setAttribute('readonly', '');
     textArea.style.position = 'fixed';
-    textArea.style.top = '0';
-    textArea.style.left = '0';
-    textArea.style.width = '2em';
-    textArea.style.height = '2em';
-    textArea.style.padding = '0';
-    textArea.style.border = 'none';
-    textArea.style.outline = 'none';
-    textArea.style.boxShadow = 'none';
-    textArea.style.background = 'transparent';
-    textArea.style.fontSize = '16px'; // Prevents auto-zoom on iOS Safari
-
+    textArea.style.top = '-9999px';
+    textArea.style.left = '-9999px';
+    textArea.style.opacity = '0';
     document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-    textArea.setSelectionRange(0, text.length);
+
+    // Specific iOS Safari Range Selection Fix
+    if (navigator.userAgent.match(/ipad|ipod|iphone/i)) {
+      const editable = textArea.contentEditable;
+      const readOnly = textArea.readOnly;
+      textArea.contentEditable = 'true';
+      textArea.readOnly = false;
+      const range = document.createRange();
+      range.selectNodeContents(textArea);
+      const sel = window.getSelection();
+      sel?.removeAllRanges();
+      sel?.addRange(range);
+      textArea.setSelectionRange(0, 999999);
+      textArea.contentEditable = editable;
+      textArea.readOnly = readOnly;
+    } else {
+      textArea.select();
+      textArea.setSelectionRange(0, text.length);
+    }
 
     const successful = document.execCommand('copy');
     document.body.removeChild(textArea);
@@ -420,8 +428,7 @@ async function copyToClipboard(text: string): Promise<boolean> {
 }
 
 // Click / Tap to Copy Display Value
-displayContainer?.addEventListener('click', async (e: MouseEvent | TouchEvent) => {
-  e.preventDefault();
+displayContainer?.addEventListener('click', async () => {
   const val = calc.getState().currentValue;
   if (val === 'Error') return;
 
