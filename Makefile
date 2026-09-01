@@ -40,6 +40,13 @@ setup-sdk:
 open:
 	npm run cap:open
 
+# Create and push release tag from VERSION file
+release:
+	@VERSION=$$(cat VERSION | tr -d ' \n\r'); \
+	echo "🚀 Tagging and releasing v$$VERSION from VERSION file..."; \
+	git tag -a "v$$VERSION" -m "Release v$$VERSION" && \
+	git push origin "v$$VERSION"
+
 # Clean build artifacts
 clean:
 	rm -rf dist dev-dist .dist_old calculator-*.apk

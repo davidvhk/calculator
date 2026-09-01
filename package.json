@@ -1,7 +1,7 @@
 {
   "name": "calculator-pwa",
   "private": false,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A fast, offline-first calculator for Chromebook (ChromeOS) and Linux",
   "author": "David Vanhoucke <vanhouckedavid@gmail.com>",
   "license": "AGPL-3.0-or-later",
