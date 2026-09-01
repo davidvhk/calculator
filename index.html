@@ -25,8 +25,19 @@
         </header>
 
         <section class="display-container" aria-live="polite">
-          <div id="history-display" class="history-display"></div>
+          <div class="display-meta">
+            <span id="memory-indicator" class="memory-badge" title="Value stored in memory" aria-label="Memory active">M</span>
+            <div id="history-display" class="history-display"></div>
+          </div>
           <div id="main-display" class="main-display">0</div>
+        </section>
+
+        <section class="memory-bar" role="toolbar" aria-label="Memory Controls">
+          <button id="mc-btn" class="mem-btn" data-action="memory-clear" title="Memory Clear (MC)" aria-label="Memory Clear" disabled>MC</button>
+          <button id="mr-btn" class="mem-btn" data-action="memory-recall" title="Memory Recall (MR)" aria-label="Memory Recall" disabled>MR</button>
+          <button id="mplus-btn" class="mem-btn" data-action="memory-add" title="Memory Add (M+)" aria-label="Memory Add">M+</button>
+          <button id="mminus-btn" class="mem-btn" data-action="memory-subtract" title="Memory Subtract (M-)" aria-label="Memory Subtract">M−</button>
+          <button id="ms-btn" class="mem-btn" data-action="memory-store" title="Memory Store (MS)" aria-label="Memory Store">MS</button>
         </section>
 
         <section class="keypad" role="grid">

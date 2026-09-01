@@ -6,6 +6,7 @@ export interface CalculatorState {
   operator: Operator | null;
   waitingForNewOperand: boolean;
   history: string[];
+  memory: number | null;
 }
 
 export class CalculatorEngine {
@@ -21,7 +22,8 @@ export class CalculatorEngine {
       previousValue: null,
       operator: null,
       waitingForNewOperand: false,
-      history: []
+      history: [],
+      memory: null
     };
   }
 
@@ -30,7 +32,49 @@ export class CalculatorEngine {
   }
 
   public clearAll(): CalculatorState {
+    const currentMemory = this.state.memory;
     this.state = this.getInitialState();
+    this.state.memory = currentMemory;
+    return this.getState();
+  }
+
+  public memoryStore(): CalculatorState {
+    const val = parseFloat(this.state.currentValue);
+    if (!isNaN(val) && isFinite(val) && this.state.currentValue !== 'Error') {
+      this.state.memory = val;
+      this.state.waitingForNewOperand = true;
+    }
+    return this.getState();
+  }
+
+  public memoryRecall(): CalculatorState {
+    if (this.state.memory !== null) {
+      this.state.currentValue = this.formatNumber(this.state.memory);
+      this.state.waitingForNewOperand = true;
+    }
+    return this.getState();
+  }
+
+  public memoryClear(): CalculatorState {
+    this.state.memory = null;
+    return this.getState();
+  }
+
+  public memoryAdd(): CalculatorState {
+    const val = parseFloat(this.state.currentValue);
+    if (!isNaN(val) && isFinite(val) && this.state.currentValue !== 'Error') {
+      this.state.memory = (this.state.memory ?? 0) + val;
+      this.state.waitingForNewOperand = true;
+    }
+    return this.getState();
+  }
+
+  public memorySubtract(): CalculatorState {
+    const val = parseFloat(this.state.currentValue);
+    if (!isNaN(val) && isFinite(val) && this.state.currentValue !== 'Error') {
+      this.state.memory = (this.state.memory ?? 0) - val;
+      this.state.waitingForNewOperand = true;
+    }
     return this.getState();
   }
 

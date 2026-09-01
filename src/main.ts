@@ -5,6 +5,9 @@ const calc = new CalculatorEngine();
 
 const mainDisplay = document.getElementById('main-display') as HTMLDivElement;
 const historyDisplay = document.getElementById('history-display') as HTMLDivElement;
+const memoryIndicator = document.getElementById('memory-indicator') as HTMLSpanElement;
+const mcBtn = document.getElementById('mc-btn') as HTMLButtonElement;
+const mrBtn = document.getElementById('mr-btn') as HTMLButtonElement;
 const themeToggleBtn = document.getElementById('theme-toggle') as HTMLButtonElement;
 const aboutBtn = document.getElementById('about-btn') as HTMLButtonElement;
 const aboutModal = document.getElementById('about-modal') as HTMLDialogElement;
@@ -30,10 +33,18 @@ function updateUI(): void {
   } else {
     historyDisplay.textContent = '';
   }
+
+  // Memory UI state
+  const hasMemory = state.memory !== null;
+  if (memoryIndicator) {
+    memoryIndicator.style.opacity = hasMemory ? '1' : '0';
+  }
+  if (mcBtn) mcBtn.disabled = !hasMemory;
+  if (mrBtn) mrBtn.disabled = !hasMemory;
 }
 
-// Button Click Handling
-document.querySelector('.keypad')?.addEventListener('click', (e) => {
+// Button Click Handling for Keypad and Memory Bar
+document.querySelector('.calculator-card')?.addEventListener('click', (e) => {
   const target = (e.target as HTMLElement).closest('button');
   if (!target) return;
 
@@ -80,6 +91,21 @@ function handleAction(action: string): void {
       break;
     case 'equals':
       calc.calculateEquals();
+      break;
+    case 'memory-clear':
+      calc.memoryClear();
+      break;
+    case 'memory-recall':
+      calc.memoryRecall();
+      break;
+    case 'memory-add':
+      calc.memoryAdd();
+      break;
+    case 'memory-subtract':
+      calc.memorySubtract();
+      break;
+    case 'memory-store':
+      calc.memoryStore();
       break;
   }
 }

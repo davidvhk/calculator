@@ -144,7 +144,7 @@ body {
 .display-container {
   background: var(--display-bg);
   border-radius: 16px;
-  padding: 16px 18px;
+  padding: 14px 18px;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -155,12 +155,32 @@ body {
   overflow: hidden;
 }
 
+.display-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  min-height: 20px;
+}
+
+.memory-badge {
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--key-op-bg);
+  color: #ffffff;
+  padding: 2px 6px;
+  border-radius: 6px;
+  line-height: 1.2;
+  transition: opacity 0.2s ease;
+  opacity: 0;
+}
+
 .history-display {
   font-size: 14px;
   color: var(--text-muted);
-  min-height: 20px;
   word-break: break-all;
   text-align: right;
+  flex: 1;
 }
 
 .main-display {
@@ -171,6 +191,39 @@ body {
   line-height: 1.15;
   text-align: right;
   transition: font-size 0.1s ease;
+}
+
+.memory-bar {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.mem-btn {
+  appearance: none;
+  border: none;
+  background: var(--key-func-bg);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 4px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+}
+
+.mem-btn:hover:not(:disabled) {
+  background-color: var(--key-func-hover);
+  color: var(--text-main);
+}
+
+.mem-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 .keypad {
