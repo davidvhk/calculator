@@ -8,6 +8,8 @@ const historyDisplay = document.getElementById('history-display') as HTMLDivElem
 const memoryIndicator = document.getElementById('memory-indicator') as HTMLSpanElement;
 const angleBadge = document.getElementById('angle-badge') as HTMLSpanElement;
 const angleBtnText = document.getElementById('angle-btn-text') as HTMLSpanElement;
+const parenBadge = document.getElementById('paren-badge') as HTMLSpanElement;
+const closeParenBtn = document.getElementById('close-paren-btn') as HTMLButtonElement;
 const mcBtn = document.getElementById('mc-btn') as HTMLButtonElement;
 const mrBtn = document.getElementById('mr-btn') as HTMLButtonElement;
 const modeToggleBtn = document.getElementById('mode-toggle') as HTMLButtonElement;
@@ -78,7 +80,9 @@ function updateUI(): void {
     mainDisplay.style.fontSize = '38px';
   }
 
-  if (state.previousValue !== null && state.operator !== null) {
+  if (state.expression) {
+    historyDisplay.textContent = state.expression;
+  } else if (state.previousValue !== null && state.operator !== null) {
     historyDisplay.textContent = `${state.previousValue} ${state.operator}`;
   } else if (state.history.length > 0) {
     historyDisplay.textContent = state.history[0];
@@ -93,6 +97,16 @@ function updateUI(): void {
   }
   if (mcBtn) mcBtn.disabled = !hasMemory;
   if (mrBtn) mrBtn.disabled = !hasMemory;
+
+  // Parentheses Level Indicator & Close Button State
+  const depth = state.parenthesesDepth;
+  if (parenBadge) {
+    parenBadge.textContent = depth > 1 ? `(${depth})` : `( )`;
+    parenBadge.style.display = depth > 0 ? 'inline-block' : 'none';
+  }
+  if (closeParenBtn) {
+    closeParenBtn.disabled = depth === 0;
+  }
 
   // Scientific Mode UI state
   if (angleBadge) {
@@ -241,6 +255,12 @@ function handleAction(action: string): void {
     case 'reciprocal':
       calc.reciprocal();
       break;
+    case 'open-parenthesis':
+      calc.openParenthesis();
+      break;
+    case 'close-parenthesis':
+      calc.closeParenthesis();
+      break;
     case 'abs':
       calc.abs();
       break;
@@ -272,6 +292,15 @@ window.addEventListener('keydown', (e: KeyboardEvent) => {
     updateUI();
   } else if (e.key === '.') {
     calc.inputDecimal();
+    updateUI();
+  } else if (e.key === '(') {
+    calc.openParenthesis();
+    updateUI();
+  } else if (e.key === ')') {
+    calc.closeParenthesis();
+    updateUI();
+  } else if (e.key === '^') {
+    calc.setOperator('^');
     updateUI();
   } else if (e.key === '+') {
     calc.setOperator('+');

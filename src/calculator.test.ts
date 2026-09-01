@@ -312,5 +312,41 @@ describe('CalculatorEngine', () => {
       expect(second.split('.').length).toBeLessThanOrEqual(2);
       expect(isNaN(parseFloat(second))).toBe(false);
     });
+
+    it('should evaluate expressions with parentheses correctly', () => {
+      // (5 + 3) * 2 = 16
+      calc.openParenthesis();
+      calc.inputDigit('5');
+      calc.setOperator('+');
+      calc.inputDigit('3');
+      calc.closeParenthesis();
+      calc.setOperator('×');
+      calc.inputDigit('2');
+      let state = calc.calculateEquals();
+      expect(state.currentValue).toBe('16');
+
+      calc.clearAll();
+      // 2 * (3 + 4) = 14
+      calc.inputDigit('2');
+      calc.setOperator('×');
+      calc.openParenthesis();
+      calc.inputDigit('3');
+      calc.setOperator('+');
+      calc.inputDigit('4');
+      calc.closeParenthesis();
+      state = calc.calculateEquals();
+      expect(state.currentValue).toBe('14');
+
+      calc.clearAll();
+      // Auto-close open parenthesis on =: 4 * (3 + 2 = 20
+      calc.inputDigit('4');
+      calc.setOperator('×');
+      calc.openParenthesis();
+      calc.inputDigit('3');
+      calc.setOperator('+');
+      calc.inputDigit('2');
+      state = calc.calculateEquals();
+      expect(state.currentValue).toBe('20');
+    });
   });
 });

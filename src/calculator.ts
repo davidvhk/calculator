@@ -9,10 +9,13 @@ export interface CalculatorState {
   history: string[];
   memory: number | null;
   angleMode: AngleMode;
+  parenthesesDepth: number;
+  expression: string;
 }
 
 export class CalculatorEngine {
   private state: CalculatorState;
+  private stack: Array<{ previousValue: string | null; operator: Operator | null }> = [];
 
   constructor() {
     this.state = this.getInitialState();
@@ -26,18 +29,104 @@ export class CalculatorEngine {
       waitingForNewOperand: false,
       history: [],
       memory: null,
-      angleMode: 'deg'
+      angleMode: 'deg',
+      parenthesesDepth: 0,
+      expression: ''
     };
   }
 
+  public getExpression(): string {
+    const parts: string[] = [];
+    for (const frame of this.stack) {
+      if (frame.previousValue !== null && frame.operator !== null) {
+        parts.push(`${frame.previousValue} ${frame.operator} (`);
+      } else {
+        parts.push('(');
+      }
+    }
+    if (this.state.previousValue !== null && this.state.operator !== null) {
+      parts.push(`${this.state.previousValue} ${this.state.operator}`);
+    }
+    return parts.join(' ');
+  }
+
   public getState(): CalculatorState {
-    return { ...this.state };
+    return {
+      ...this.state,
+      parenthesesDepth: this.stack.length,
+      expression: this.getExpression()
+    };
   }
 
   public clearAll(): CalculatorState {
     const currentMemory = this.state.memory;
+    this.stack = [];
     this.state = this.getInitialState();
     this.state.memory = currentMemory;
+    return this.getState();
+  }
+
+  public openParenthesis(): CalculatorState {
+    this.stack.push({
+      previousValue: this.state.previousValue,
+      operator: this.state.operator
+    });
+
+    if (this.state.operator !== null) {
+      if (this.state.expression.trim().endsWith(this.state.operator)) {
+        this.state.expression = `${this.state.expression.trim()} (`;
+      } else {
+        this.state.expression = this.state.expression
+          ? `${this.state.expression.trim()} (`
+          : `${this.state.previousValue} ${this.state.operator} (`;
+      }
+    } else {
+      this.state.expression = this.state.expression
+        ? `${this.state.expression.trim()} (`
+        : '(';
+    }
+
+    this.state.previousValue = null;
+    this.state.operator = null;
+    this.state.waitingForNewOperand = true;
+    this.state.parenthesesDepth = this.stack.length;
+    return this.getState();
+  }
+
+  public closeParenthesis(): CalculatorState {
+    if (this.stack.length === 0) {
+      return this.getState();
+    }
+
+    if (this.state.operator && this.state.previousValue !== null) {
+      const prev = parseFloat(this.state.previousValue);
+      const curr = parseFloat(this.state.currentValue);
+      const res = this.executeCalculation(prev, curr, this.state.operator);
+      if (res === 'Error') {
+        this.state.currentValue = 'Error';
+        this.stack = [];
+        this.state.previousValue = null;
+        this.state.operator = null;
+        this.state.parenthesesDepth = 0;
+        this.state.expression = '';
+        return this.getState();
+      }
+
+      if (this.state.expression.trim().endsWith('(')) {
+        this.state.expression = `${this.state.expression.trim()} ${this.state.previousValue} ${this.state.operator} ${this.state.currentValue} )`;
+      } else {
+        this.state.expression = `${this.state.expression.trim()} ${this.state.currentValue} )`;
+      }
+      this.state.currentValue = res;
+    } else {
+      this.state.expression = `${this.state.expression.trim()} ${this.state.currentValue} )`;
+    }
+
+    const frame = this.stack.pop()!;
+    this.state.previousValue = frame.previousValue;
+    this.state.operator = frame.operator;
+    this.state.waitingForNewOperand = true;
+    this.state.parenthesesDepth = this.stack.length;
     return this.getState();
   }
 
@@ -188,6 +277,13 @@ export class CalculatorEngine {
   }
 
   public calculateEquals(): CalculatorState {
+    while (this.stack.length > 0) {
+      this.closeParenthesis();
+      if (this.state.currentValue === 'Error') {
+        return this.getState();
+      }
+    }
+
     if (!this.state.operator || this.state.previousValue === null) {
       return this.getState();
     }

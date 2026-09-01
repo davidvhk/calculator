@@ -215,6 +215,17 @@ body {
   display: none;
 }
 
+.paren-badge {
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--key-equals-bg);
+  color: #ffffff;
+  padding: 2px 6px;
+  border-radius: 6px;
+  line-height: 1.2;
+  display: none;
+}
+
 .history-display {
   font-size: 14px;
   color: var(--text-muted);
@@ -449,6 +460,12 @@ body {
 
 .key:active {
   transform: scale(0.94);
+}
+
+.key:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .key.num {

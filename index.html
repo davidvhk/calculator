@@ -38,6 +38,7 @@
             <div class="badges-group">
               <span id="memory-indicator" class="memory-badge" title="Value stored in memory" aria-label="Memory active">M</span>
               <span id="angle-badge" class="angle-badge" title="Angle Mode" aria-label="Angle Mode">DEG</span>
+              <span id="paren-badge" class="paren-badge" title="Parentheses Level" aria-label="Parentheses Level">(1)</span>
             </div>
             <div id="history-display" class="history-display"></div>
           </div>
@@ -75,9 +76,9 @@
             <button class="key sci" data-action="exp10" aria-label="10 to power x">10ˣ</button>
             <button class="key sci" data-action="factorial" aria-label="Factorial">n!</button>
 
+            <button id="open-paren-btn" class="key sci" data-action="open-parenthesis" aria-label="Open Parenthesis">(</button>
+            <button id="close-paren-btn" class="key sci" data-action="close-parenthesis" aria-label="Close Parenthesis" disabled>)</button>
             <button class="key sci" data-action="reciprocal" aria-label="Reciprocal">1/x</button>
-            <button class="key sci" data-action="abs" aria-label="Absolute Value">|x|</button>
-            <button class="key sci" data-action="clear-entry" aria-label="Clear Entry">CE</button>
             <button class="key sci" data-action="random" aria-label="Random Number">RND</button>
           </section>
 
