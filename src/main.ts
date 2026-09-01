@@ -427,8 +427,7 @@ async function copyToClipboard(text: string): Promise<boolean> {
   }
 }
 
-// Click / Tap to Copy Display Value
-displayContainer?.addEventListener('click', async () => {
+async function handleCopyDisplay(): Promise<void> {
   const val = calc.getState().currentValue;
   if (val === 'Error') return;
 
@@ -436,6 +435,27 @@ displayContainer?.addEventListener('click', async () => {
   triggerHaptic();
   playKeySound();
   showToast(success ? 'Copied!' : 'Copied: ' + val);
+}
+
+// Click / Short Tap
+displayContainer?.addEventListener('click', handleCopyDisplay);
+
+// Long-Press Support for Mobile (e.g. 450ms hold)
+let longPressTimer: number | undefined;
+
+displayContainer?.addEventListener('touchstart', () => {
+  if (longPressTimer) clearTimeout(longPressTimer);
+  longPressTimer = window.setTimeout(() => {
+    handleCopyDisplay();
+  }, 450);
+}, { passive: true });
+
+displayContainer?.addEventListener('touchend', () => {
+  if (longPressTimer) clearTimeout(longPressTimer);
+});
+
+displayContainer?.addEventListener('touchmove', () => {
+  if (longPressTimer) clearTimeout(longPressTimer);
 });
 
 // Clipboard Paste Support (Ctrl+V / Cmd+V)
