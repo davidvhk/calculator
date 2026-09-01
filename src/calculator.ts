@@ -60,9 +60,28 @@ export class CalculatorEngine {
 
   public clearAll(): CalculatorState {
     const currentMemory = this.state.memory;
+    const currentHistory = this.state.history;
     this.stack = [];
     this.state = this.getInitialState();
     this.state.memory = currentMemory;
+    this.state.history = currentHistory;
+    return this.getState();
+  }
+
+  public clearHistory(): CalculatorState {
+    this.state.history = [];
+    return this.getState();
+  }
+
+  public deleteHistoryItem(index: number): CalculatorState {
+    if (index >= 0 && index < this.state.history.length) {
+      this.state.history.splice(index, 1);
+    }
+    return this.getState();
+  }
+
+  public loadHistory(items: string[]): CalculatorState {
+    this.state.history = Array.isArray(items) ? items : [];
     return this.getState();
   }
 

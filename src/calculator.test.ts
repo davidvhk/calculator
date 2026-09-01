@@ -105,7 +105,7 @@ describe('CalculatorEngine', () => {
     expect(calc.getState().currentValue).toBe('0');
   });
 
-  it('should support chained operations', () => {
+  it('should support chained operations and record history', () => {
     calc.inputDigit('2');
     calc.setOperator('+');
     calc.inputDigit('3');
@@ -114,6 +114,23 @@ describe('CalculatorEngine', () => {
     calc.inputDigit('4');
     const state = calc.calculateEquals();
     expect(state.currentValue).toBe('20');
+    expect(state.history.length).toBeGreaterThan(0);
+
+    // clearAll should preserve history
+    calc.clearAll();
+    expect(calc.getState().history.length).toBeGreaterThan(0);
+
+    // clearHistory should reset history
+    calc.clearHistory();
+    expect(calc.getState().history.length).toBe(0);
+
+    // loadHistory should restore items
+    calc.loadHistory(['5 + 5 = 10', '2 × 3 = 6', '10 - 4 = 6']);
+    expect(calc.getState().history.length).toBe(3);
+
+    // delete individual item by index
+    calc.deleteHistoryItem(1);
+    expect(calc.getState().history).toEqual(['5 + 5 = 10', '10 - 4 = 6']);
   });
 
   describe('Memory Functions', () => {

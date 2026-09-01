@@ -15,11 +15,26 @@ const closeParenBtn = document.getElementById('close-paren-btn') as HTMLButtonEl
 const mcBtn = document.getElementById('mc-btn') as HTMLButtonElement;
 const mrBtn = document.getElementById('mr-btn') as HTMLButtonElement;
 const modeToggleBtn = document.getElementById('mode-toggle') as HTMLButtonElement;
+const historyBtn = document.getElementById('history-btn') as HTMLButtonElement;
+const historyModal = document.getElementById('history-modal') as HTMLDialogElement;
+const closeHistoryBtn = document.getElementById('close-history-btn') as HTMLButtonElement;
+const clearHistoryBtn = document.getElementById('clear-history-btn') as HTMLButtonElement;
+const historyList = document.getElementById('history-list') as HTMLDivElement;
 const soundToggleBtn = document.getElementById('sound-toggle') as HTMLButtonElement;
 const themeToggleBtn = document.getElementById('theme-toggle') as HTMLButtonElement;
 const aboutBtn = document.getElementById('about-btn') as HTMLButtonElement;
 const aboutModal = document.getElementById('about-modal') as HTMLDialogElement;
 const closeAboutBtn = document.getElementById('close-about-btn') as HTMLButtonElement;
+
+// Load Persisted History
+try {
+  const savedHistory = localStorage.getItem('calc-history');
+  if (savedHistory) {
+    calc.loadHistory(JSON.parse(savedHistory));
+  }
+} catch {
+  // Ignore parse errors
+}
 
 const SCIENTIFIC_ICON_SVG = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="M3 21h18L3 3v18z"/>
@@ -218,6 +233,144 @@ function updateUI(): void {
     themeToggleBtn.innerHTML = currentTheme === 'dark' ? SUN_ICON_SVG : MOON_ICON_SVG;
     themeToggleBtn.title = currentTheme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme';
   }
+
+  // Persist History
+  try {
+    localStorage.setItem('calc-history', JSON.stringify(state.history));
+  } catch {
+    // Ignore storage quota errors
+  }
+}
+
+function renderHistoryList(): void {
+  if (!historyList) return;
+  const state = calc.getState();
+  if (state.history.length === 0) {
+    historyList.innerHTML = `
+      <div class="history-empty">
+        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <span>No calculations yet</span>
+      </div>
+    `;
+    return;
+  }
+
+  historyList.innerHTML = '';
+  state.history.forEach((item, index) => {
+    const parts = item.split('=');
+    const eq = parts[0]?.trim() || item;
+    const res = parts[1]?.trim() || '';
+
+    const wrapperEl = document.createElement('div');
+    wrapperEl.className = 'history-item-wrapper';
+
+    wrapperEl.innerHTML = `
+      <div class="history-item-delete-bg">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+        </svg>
+      </div>
+      <div class="history-item" title="Click to use result, or swipe left to delete">
+        <button class="history-item-del-btn" title="Delete calculation" aria-label="Delete calculation">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+        <div class="history-item-body">
+          <span class="history-item-eq">${eq} =</span>
+          <span class="history-item-res">${res || eq}</span>
+        </div>
+      </div>
+    `;
+
+    const itemEl = wrapperEl.querySelector('.history-item') as HTMLElement;
+    const delBtn = wrapperEl.querySelector('.history-item-del-btn') as HTMLElement;
+
+    const performDelete = () => {
+      triggerHaptic();
+      playKeySound();
+      wrapperEl.classList.add('deleting');
+      setTimeout(() => {
+        calc.deleteHistoryItem(index);
+        updateUI();
+        renderHistoryList();
+      }, 220);
+    };
+
+    // Click delete button
+    delBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      performDelete();
+    });
+
+    // Click body to load calculation
+    itemEl.addEventListener('click', () => {
+      triggerHaptic();
+      playKeySound();
+      const targetVal = res || eq;
+      calc.clearAll();
+      for (const char of targetVal) {
+        if (char >= '0' && char <= '9') {
+          calc.inputDigit(char);
+        } else if (char === '.') {
+          calc.inputDecimal();
+        } else if (char === '-') {
+          calc.toggleSign();
+        }
+      }
+      updateUI();
+      historyModal.close();
+      showToast('Loaded: ' + targetVal);
+    });
+
+    // Touch Swipe-to-Delete Handling (Mobile)
+    let startX = 0;
+    let startY = 0;
+    let currentDeltaX = 0;
+    let isSwiping = false;
+
+    itemEl.addEventListener('touchstart', (e: TouchEvent) => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      currentDeltaX = 0;
+      isSwiping = false;
+    }, { passive: true });
+
+    itemEl.addEventListener('touchmove', (e: TouchEvent) => {
+      const touch = e.touches[0];
+      const diffX = touch.clientX - startX;
+      const diffY = touch.clientY - startY;
+
+      if (!isSwiping && Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 8) {
+        isSwiping = true;
+      }
+
+      if (isSwiping && diffX < 0) {
+        currentDeltaX = diffX;
+        itemEl.classList.add('swiping');
+        itemEl.style.transform = `translateX(${Math.max(diffX, -100)}px)`;
+      }
+    }, { passive: true });
+
+    itemEl.addEventListener('touchend', () => {
+      itemEl.classList.remove('swiping');
+      if (isSwiping && currentDeltaX < -60) {
+        itemEl.style.transform = 'translateX(-100%)';
+        performDelete();
+      } else {
+        itemEl.style.transform = 'translateX(0)';
+      }
+      isSwiping = false;
+      currentDeltaX = 0;
+    });
+
+    historyList.appendChild(wrapperEl);
+  });
 }
 
 // Button Click Handling for Keypads and Memory Bar
@@ -546,13 +699,52 @@ window.addEventListener('keydown', (e: KeyboardEvent) => {
   }
 });
 
+// History Modal Event Listeners
+historyBtn?.addEventListener('click', () => {
+  renderHistoryList();
+  historyModal.showModal();
+  triggerHaptic();
+  playKeySound();
+});
+
+closeHistoryBtn?.addEventListener('click', () => {
+  historyModal.close();
+  triggerHaptic();
+  playKeySound();
+});
+
+clearHistoryBtn?.addEventListener('click', () => {
+  calc.clearHistory();
+  updateUI();
+  renderHistoryList();
+  triggerHaptic();
+  playKeySound();
+  showToast('History cleared');
+});
+
+historyModal?.addEventListener('click', (e) => {
+  const dialogDimensions = historyModal.getBoundingClientRect();
+  if (
+    e.clientX < dialogDimensions.left ||
+    e.clientX > dialogDimensions.right ||
+    e.clientY < dialogDimensions.top ||
+    e.clientY > dialogDimensions.bottom
+  ) {
+    historyModal.close();
+  }
+});
+
 // About Modal Event Listeners
 aboutBtn?.addEventListener('click', () => {
   aboutModal.showModal();
+  triggerHaptic();
+  playKeySound();
 });
 
 closeAboutBtn?.addEventListener('click', () => {
   aboutModal.close();
+  triggerHaptic();
+  playKeySound();
 });
 
 aboutModal?.addEventListener('click', (e) => {
