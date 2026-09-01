@@ -22,6 +22,9 @@
             <button id="mode-toggle" class="icon-button" title="Switch to Scientific Mode" aria-label="Toggle Calculator Mode">
               <!-- SVG injected dynamically by main.ts -->
             </button>
+            <button id="sound-toggle" class="icon-button" title="Toggle Key Sound" aria-label="Toggle Key Sound">
+              <!-- SVG injected dynamically by main.ts -->
+            </button>
             <button id="about-btn" class="icon-button" title="About Calculator" aria-label="About">
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"/>
@@ -37,7 +40,8 @@
           </div>
         </header>
 
-        <section class="display-container" aria-live="polite">
+        <section id="display-container" class="display-container" title="Click to copy" aria-live="polite">
+          <div id="copy-toast" class="copy-toast" role="status" aria-live="polite">Copied!</div>
           <div class="display-meta">
             <div class="badges-group">
               <span id="memory-indicator" class="memory-badge" title="Value stored in memory" aria-label="Memory active">M</span>

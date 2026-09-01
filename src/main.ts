@@ -5,6 +5,8 @@ const calc = new CalculatorEngine();
 
 const mainDisplay = document.getElementById('main-display') as HTMLDivElement;
 const historyDisplay = document.getElementById('history-display') as HTMLDivElement;
+const displayContainer = document.getElementById('display-container') as HTMLElement;
+const copyToast = document.getElementById('copy-toast') as HTMLDivElement;
 const memoryIndicator = document.getElementById('memory-indicator') as HTMLSpanElement;
 const angleBadge = document.getElementById('angle-badge') as HTMLSpanElement;
 const angleBtnText = document.getElementById('angle-btn-text') as HTMLSpanElement;
@@ -13,6 +15,7 @@ const closeParenBtn = document.getElementById('close-paren-btn') as HTMLButtonEl
 const mcBtn = document.getElementById('mc-btn') as HTMLButtonElement;
 const mrBtn = document.getElementById('mr-btn') as HTMLButtonElement;
 const modeToggleBtn = document.getElementById('mode-toggle') as HTMLButtonElement;
+const soundToggleBtn = document.getElementById('sound-toggle') as HTMLButtonElement;
 const themeToggleBtn = document.getElementById('theme-toggle') as HTMLButtonElement;
 const aboutBtn = document.getElementById('about-btn') as HTMLButtonElement;
 const aboutModal = document.getElementById('about-modal') as HTMLDialogElement;
@@ -41,6 +44,18 @@ const BASIC_ICON_SVG = `<svg viewBox="0 0 24 24" width="18" height="18" fill="no
   <path d="M8 18h.01"/>
 </svg>`;
 
+const SOUND_ON_SVG = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+  <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+  <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+</svg>`;
+
+const SOUND_OFF_SVG = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+  <line x1="23" y1="9" x2="17" y2="15"/>
+  <line x1="17" y1="9" x2="23" y2="15"/>
+</svg>`;
+
 const SUN_ICON_SVG = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <circle cx="12" cy="12" r="4"/>
   <path d="M12 2v2"/>
@@ -64,6 +79,67 @@ document.documentElement.setAttribute('data-mode', currentMode);
 // Theme State Management
 let currentTheme = localStorage.getItem('calc-theme') || 'dark';
 document.documentElement.setAttribute('data-theme', currentTheme);
+
+// Sound State Management
+let soundEnabled = localStorage.getItem('calc-sound') !== 'off';
+
+// Web Audio API Key Click Synthesizer
+let audioCtx: AudioContext | null = null;
+
+function playKeySound(): void {
+  if (!soundEnabled) return;
+  try {
+    const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!audioCtx && AudioContextClass) {
+      audioCtx = new AudioContextClass();
+    }
+    if (audioCtx) {
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(900, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(140, audioCtx.currentTime + 0.03);
+
+      gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.03);
+    }
+  } catch {
+    // AudioContext ignored gracefully
+  }
+}
+
+function triggerHaptic(): void {
+  if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+    try {
+      navigator.vibrate(10);
+    } catch {
+      // Haptics ignored gracefully
+    }
+  }
+}
+
+// Toast Feedback Helper
+let copyToastTimeout: number | undefined;
+
+function showToast(msg: string): void {
+  if (!copyToast) return;
+  copyToast.textContent = msg;
+  copyToast.classList.add('visible');
+  if (copyToastTimeout) clearTimeout(copyToastTimeout);
+  copyToastTimeout = window.setTimeout(() => {
+    copyToast.classList.remove('visible');
+  }, 1400);
+}
 
 function updateUI(): void {
   const state = calc.getState();
@@ -130,6 +206,13 @@ function updateUI(): void {
     }
   }
 
+  // Header Sound Toggle Icon
+  if (soundToggleBtn) {
+    soundToggleBtn.innerHTML = soundEnabled ? SOUND_ON_SVG : SOUND_OFF_SVG;
+    soundToggleBtn.title = soundEnabled ? 'Mute Key Sound' : 'Enable Key Sound';
+    soundToggleBtn.setAttribute('aria-label', soundEnabled ? 'Mute Key Sound' : 'Enable Key Sound');
+  }
+
   // Header Theme Toggle Icon
   if (themeToggleBtn) {
     themeToggleBtn.innerHTML = currentTheme === 'dark' ? SUN_ICON_SVG : MOON_ICON_SVG;
@@ -146,8 +229,12 @@ document.querySelector('.calculator-card')?.addEventListener('click', (e) => {
   const action = target.getAttribute('data-action');
 
   if (digit !== null) {
+    triggerHaptic();
+    playKeySound();
     calc.inputDigit(digit);
   } else if (action) {
+    triggerHaptic();
+    playKeySound();
     handleAction(action);
   }
 
@@ -275,7 +362,68 @@ modeToggleBtn?.addEventListener('click', () => {
   currentMode = currentMode === 'basic' ? 'scientific' : 'basic';
   document.documentElement.setAttribute('data-mode', currentMode);
   localStorage.setItem('calc-mode', currentMode);
+  triggerHaptic();
+  playKeySound();
   updateUI();
+});
+
+// Sound Toggle Button
+soundToggleBtn?.addEventListener('click', () => {
+  soundEnabled = !soundEnabled;
+  localStorage.setItem('calc-sound', soundEnabled ? 'on' : 'off');
+  triggerHaptic();
+  if (soundEnabled) playKeySound();
+  updateUI();
+});
+
+// Click to Copy Display Value
+displayContainer?.addEventListener('click', async () => {
+  const val = calc.getState().currentValue;
+  if (val === 'Error') return;
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(val);
+    } else {
+      const textarea = document.createElement('textarea');
+      textarea.value = val;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    }
+    triggerHaptic();
+    playKeySound();
+    showToast('Copied!');
+  } catch {
+    showToast('Copied: ' + val);
+  }
+});
+
+// Clipboard Paste Support (Ctrl+V / Cmd+V)
+window.addEventListener('paste', (e: ClipboardEvent) => {
+  if (aboutModal?.open) return;
+  const pasted = e.clipboardData?.getData('text');
+  if (!pasted) return;
+
+  const sanitized = pasted.trim().replace(/,/g, '.').replace(/\s+/g, '');
+  const num = parseFloat(sanitized);
+
+  if (!isNaN(num) && isFinite(num)) {
+    calc.clearAll();
+    for (const char of sanitized) {
+      if (char >= '0' && char <= '9') {
+        calc.inputDigit(char);
+      } else if (char === '.') {
+        calc.inputDecimal();
+      } else if (char === '-') {
+        calc.toggleSign();
+      }
+    }
+    triggerHaptic();
+    playKeySound();
+    updateUI();
+    showToast('Pasted!');
+  }
 });
 
 // Physical Keyboard Support (Crucial for Chromebooks & Linux)
@@ -287,46 +435,54 @@ window.addEventListener('keydown', (e: KeyboardEvent) => {
     return;
   }
 
+  let handled = false;
+
   if (e.key >= '0' && e.key <= '9') {
     calc.inputDigit(e.key);
-    updateUI();
+    handled = true;
   } else if (e.key === '.') {
     calc.inputDecimal();
-    updateUI();
+    handled = true;
   } else if (e.key === '(') {
     calc.openParenthesis();
-    updateUI();
+    handled = true;
   } else if (e.key === ')') {
     calc.closeParenthesis();
-    updateUI();
+    handled = true;
   } else if (e.key === '^') {
     calc.setOperator('^');
-    updateUI();
+    handled = true;
   } else if (e.key === '+') {
     calc.setOperator('+');
-    updateUI();
+    handled = true;
   } else if (e.key === '-') {
     calc.setOperator('-');
-    updateUI();
+    handled = true;
   } else if (e.key === '*' || e.key === 'x') {
     calc.setOperator('×');
-    updateUI();
+    handled = true;
   } else if (e.key === '/') {
     e.preventDefault();
     calc.setOperator('÷');
-    updateUI();
+    handled = true;
   } else if (e.key === '%') {
     calc.percentage();
-    updateUI();
+    handled = true;
   } else if (e.key === 'Enter' || e.key === '=') {
     e.preventDefault();
     calc.calculateEquals();
-    updateUI();
+    handled = true;
   } else if (e.key === 'Backspace') {
     calc.backspace();
-    updateUI();
+    handled = true;
   } else if (e.key === 'Escape') {
     calc.clearAll();
+    handled = true;
+  }
+
+  if (handled) {
+    triggerHaptic();
+    playKeySound();
     updateUI();
   }
 });
@@ -357,6 +513,8 @@ themeToggleBtn?.addEventListener('click', () => {
   currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', currentTheme);
   localStorage.setItem('calc-theme', currentTheme);
+  triggerHaptic();
+  playKeySound();
   updateUI();
 });
 
