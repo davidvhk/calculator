@@ -71,6 +71,12 @@ body {
   max-width: 400px;
   max-height: 680px;
   display: flex;
+  transition: max-width 0.25s ease;
+}
+
+[data-mode="scientific"] #app {
+  max-width: 720px;
+  max-height: 680px;
 }
 
 .calculator-card {
@@ -94,8 +100,8 @@ body {
   }
 
   #app {
-    max-width: 100%;
-    max-height: 100%;
+    max-width: 100% !important;
+    max-height: 100% !important;
   }
 
   .calculator-card {
@@ -129,16 +135,33 @@ body {
 .icon-button {
   background: transparent;
   border: none;
-  font-size: 18px;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   padding: 6px;
-  border-radius: 50%;
-  line-height: 1;
-  transition: background 0.15s;
+  border-radius: 8px;
+  color: var(--text-muted);
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.08s ease;
 }
 
 .icon-button:hover {
   background: var(--key-num-hover);
+  color: var(--text-main);
+}
+
+.icon-button:active {
+  transform: scale(0.92);
+}
+
+.icon-button svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+  display: block;
 }
 
 .display-container {
@@ -163,6 +186,12 @@ body {
   min-height: 20px;
 }
 
+.badges-group {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
 .memory-badge {
   font-size: 11px;
   font-weight: 700;
@@ -175,10 +204,23 @@ body {
   opacity: 0;
 }
 
+.angle-badge {
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--key-func-bg);
+  color: var(--text-muted);
+  padding: 2px 6px;
+  border-radius: 6px;
+  line-height: 1.2;
+  display: none;
+}
+
 .history-display {
   font-size: 14px;
   color: var(--text-muted);
-  word-break: break-all;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   text-align: right;
   flex: 1;
 }
@@ -187,7 +229,8 @@ body {
   font-size: 38px;
   font-weight: 700;
   color: var(--text-main);
-  word-break: break-all;
+  white-space: nowrap;
+  overflow: hidden;
   line-height: 1.15;
   text-align: right;
   transition: font-size 0.1s ease;
@@ -226,6 +269,27 @@ body {
   cursor: not-allowed;
 }
 
+.keypads-wrapper {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+}
+
+.scientific-keypad {
+  display: none;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+}
+
+[data-mode="scientific"] .scientific-keypad {
+  display: grid;
+}
+
 .keypad {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -240,8 +304,8 @@ body {
   border: none;
   border-radius: 16px;
   height: 100%;
-  min-height: 44px;
-  font-size: clamp(18px, 3vh, 24px);
+  min-height: 40px;
+  font-size: clamp(16px, 2.5vh, 22px);
   font-weight: 600;
   cursor: pointer;
   display: flex;
@@ -249,6 +313,138 @@ body {
   justify-content: center;
   transition: transform 0.08s ease, background-color 0.15s ease, filter 0.15s ease;
   outline: none;
+}
+
+.key.sci {
+  background-color: var(--key-func-bg);
+  color: var(--text-main);
+  font-size: clamp(13px, 2vh, 16px);
+}
+
+.key.sci:hover {
+  background-color: var(--key-func-hover);
+}
+
+.key.sci.angle-btn {
+  color: var(--key-equals-bg);
+  font-weight: 700;
+}
+
+@media (max-width: 580px) and (orientation: portrait) {
+  [data-mode="scientific"] #app {
+    max-height: 100vh;
+  }
+
+  [data-mode="scientific"] .calculator-card {
+    padding: 12px;
+    gap: 8px;
+  }
+
+  [data-mode="scientific"] .display-container {
+    padding: 10px 14px;
+    min-height: 64px;
+    max-height: 80px;
+  }
+
+  [data-mode="scientific"] .main-display {
+    font-size: 26px;
+  }
+
+  [data-mode="scientific"] .memory-bar {
+    gap: 4px;
+  }
+
+  [data-mode="scientific"] .mem-btn {
+    padding: 4px;
+    font-size: 11px;
+  }
+
+  [data-mode="scientific"] .keypads-wrapper {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  [data-mode="scientific"] .scientific-keypad,
+  [data-mode="scientific"] .keypad {
+    gap: 6px;
+  }
+
+  [data-mode="scientific"] .key {
+    min-height: 32px;
+    font-size: 14px;
+    border-radius: 10px;
+  }
+}
+
+/* Mobile Landscape Auto-Scientific Mode */
+@media (orientation: landscape) and (max-height: 520px) {
+  body {
+    padding: 4px;
+  }
+
+  #app {
+    max-width: 100% !important;
+    max-height: 100% !important;
+  }
+
+  .calculator-card {
+    padding: 8px 12px;
+    gap: 6px;
+    border-radius: 16px;
+  }
+
+  .calc-header {
+    display: none;
+  }
+
+  .display-container {
+    padding: 6px 12px;
+    min-height: 44px;
+    max-height: 52px;
+  }
+
+  .main-display {
+    font-size: 22px;
+  }
+
+  .history-display {
+    font-size: 11px;
+    min-height: 14px;
+  }
+
+  .memory-bar {
+    gap: 6px;
+  }
+
+  .mem-btn {
+    padding: 3px 6px;
+    font-size: 11px;
+    border-radius: 6px;
+  }
+
+  .keypads-wrapper {
+    flex-direction: row !important;
+    gap: 8px;
+  }
+
+  .scientific-keypad {
+    display: grid !important;
+    gap: 6px;
+  }
+
+  .angle-badge {
+    display: inline-block !important;
+  }
+
+  .keypad {
+    gap: 6px;
+  }
+
+  .key {
+    min-height: 28px;
+    font-size: 13px;
+    border-radius: 8px;
+  }
 }
 
 .key:active {

@@ -6,22 +6,74 @@ const calc = new CalculatorEngine();
 const mainDisplay = document.getElementById('main-display') as HTMLDivElement;
 const historyDisplay = document.getElementById('history-display') as HTMLDivElement;
 const memoryIndicator = document.getElementById('memory-indicator') as HTMLSpanElement;
+const angleBadge = document.getElementById('angle-badge') as HTMLSpanElement;
+const angleBtnText = document.getElementById('angle-btn-text') as HTMLSpanElement;
 const mcBtn = document.getElementById('mc-btn') as HTMLButtonElement;
 const mrBtn = document.getElementById('mr-btn') as HTMLButtonElement;
+const modeToggleBtn = document.getElementById('mode-toggle') as HTMLButtonElement;
 const themeToggleBtn = document.getElementById('theme-toggle') as HTMLButtonElement;
 const aboutBtn = document.getElementById('about-btn') as HTMLButtonElement;
 const aboutModal = document.getElementById('about-modal') as HTMLDialogElement;
 const closeAboutBtn = document.getElementById('close-about-btn') as HTMLButtonElement;
+
+const SCIENTIFIC_ICON_SVG = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M3 21h18L3 3v18z"/>
+  <path d="M7 21v-3"/>
+  <path d="M11 21v-2"/>
+  <path d="M15 21v-3"/>
+  <path d="M3 11h2"/>
+  <path d="M3 15h3"/>
+  <path d="M3 7h3"/>
+</svg>`;
+
+const BASIC_ICON_SVG = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="4" y="2" width="16" height="20" rx="2"/>
+  <line x1="8" y1="6" x2="16" y2="6"/>
+  <line x1="16" y1="14" x2="16" y2="18"/>
+  <path d="M16 10h.01"/>
+  <path d="M12 10h.01"/>
+  <path d="M8 10h.01"/>
+  <path d="M12 14h.01"/>
+  <path d="M8 14h.01"/>
+  <path d="M12 18h.01"/>
+  <path d="M8 18h.01"/>
+</svg>`;
+
+const SUN_ICON_SVG = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="12" cy="12" r="4"/>
+  <path d="M12 2v2"/>
+  <path d="M12 20v2"/>
+  <path d="m4.93 4.93 1.41 1.41"/>
+  <path d="m17.66 17.66 1.41 1.41"/>
+  <path d="M2 12h2"/>
+  <path d="M20 12h2"/>
+  <path d="m6.34 17.66-1.41 1.41"/>
+  <path d="m19.07 4.93-1.41 1.41"/>
+</svg>`;
+
+const MOON_ICON_SVG = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+</svg>`;
+
+// Mode State Management (Basic vs Scientific)
+let currentMode = localStorage.getItem('calc-mode') || 'basic';
+document.documentElement.setAttribute('data-mode', currentMode);
+
+// Theme State Management
+let currentTheme = localStorage.getItem('calc-theme') || 'dark';
+document.documentElement.setAttribute('data-theme', currentTheme);
 
 function updateUI(): void {
   const state = calc.getState();
   mainDisplay.textContent = state.currentValue;
 
   // Dynamically shrink text if input is very long
-  if (state.currentValue.length > 10) {
-    mainDisplay.style.fontSize = '24px';
-  } else if (state.currentValue.length > 7) {
-    mainDisplay.style.fontSize = '30px';
+  if (state.currentValue.length > 16) {
+    mainDisplay.style.fontSize = '22px';
+  } else if (state.currentValue.length > 13) {
+    mainDisplay.style.fontSize = '28px';
+  } else if (state.currentValue.length > 10) {
+    mainDisplay.style.fontSize = '34px';
   } else {
     mainDisplay.style.fontSize = '38px';
   }
@@ -41,9 +93,37 @@ function updateUI(): void {
   }
   if (mcBtn) mcBtn.disabled = !hasMemory;
   if (mrBtn) mrBtn.disabled = !hasMemory;
+
+  // Scientific Mode UI state
+  if (angleBadge) {
+    angleBadge.textContent = state.angleMode.toUpperCase();
+    angleBadge.style.display = currentMode === 'scientific' ? 'inline-block' : 'none';
+  }
+  if (angleBtnText) {
+    angleBtnText.textContent = state.angleMode === 'deg' ? 'RAD' : 'DEG';
+  }
+
+  // Header Mode Toggle Icon (Shows Basic icon when in scientific, Scientific icon when in basic)
+  if (modeToggleBtn) {
+    if (currentMode === 'scientific') {
+      modeToggleBtn.innerHTML = BASIC_ICON_SVG;
+      modeToggleBtn.title = 'Switch to Basic Mode';
+      modeToggleBtn.setAttribute('aria-label', 'Switch to Basic Mode');
+    } else {
+      modeToggleBtn.innerHTML = SCIENTIFIC_ICON_SVG;
+      modeToggleBtn.title = 'Switch to Scientific Mode';
+      modeToggleBtn.setAttribute('aria-label', 'Switch to Scientific Mode');
+    }
+  }
+
+  // Header Theme Toggle Icon
+  if (themeToggleBtn) {
+    themeToggleBtn.innerHTML = currentTheme === 'dark' ? SUN_ICON_SVG : MOON_ICON_SVG;
+    themeToggleBtn.title = currentTheme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme';
+  }
 }
 
-// Button Click Handling for Keypad and Memory Bar
+// Button Click Handling for Keypads and Memory Bar
 document.querySelector('.calculator-card')?.addEventListener('click', (e) => {
   const target = (e.target as HTMLElement).closest('button');
   if (!target) return;
@@ -64,6 +144,9 @@ function handleAction(action: string): void {
   switch (action) {
     case 'clear':
       calc.clearAll();
+      break;
+    case 'clear-entry':
+      calc.clearEntry();
       break;
     case 'toggle-sign':
       calc.toggleSign();
@@ -107,8 +190,73 @@ function handleAction(action: string): void {
     case 'memory-store':
       calc.memoryStore();
       break;
+    case 'toggle-angle':
+      calc.toggleAngleMode();
+      break;
+    case 'sin':
+      calc.sin();
+      break;
+    case 'cos':
+      calc.cos();
+      break;
+    case 'tan':
+      calc.tan();
+      break;
+    case 'pi':
+      calc.inputPi();
+      break;
+    case 'e':
+      calc.inputE();
+      break;
+    case 'ln':
+      calc.ln();
+      break;
+    case 'log10':
+      calc.log10();
+      break;
+    case 'square':
+      calc.square();
+      break;
+    case 'cube':
+      calc.cube();
+      break;
+    case 'power':
+      calc.setOperator('^');
+      break;
+    case 'sqrt':
+      calc.sqrt();
+      break;
+    case 'cbrt':
+      calc.cbrt();
+      break;
+    case 'exp':
+      calc.exp();
+      break;
+    case 'exp10':
+      calc.exp10();
+      break;
+    case 'factorial':
+      calc.factorial();
+      break;
+    case 'reciprocal':
+      calc.reciprocal();
+      break;
+    case 'abs':
+      calc.abs();
+      break;
+    case 'random':
+      calc.random();
+      break;
   }
 }
+
+// Mode Toggle Button (Basic <-> Scientific)
+modeToggleBtn?.addEventListener('click', () => {
+  currentMode = currentMode === 'basic' ? 'scientific' : 'basic';
+  document.documentElement.setAttribute('data-mode', currentMode);
+  localStorage.setItem('calc-mode', currentMode);
+  updateUI();
+});
 
 // Physical Keyboard Support (Crucial for Chromebooks & Linux)
 window.addEventListener('keydown', (e: KeyboardEvent) => {
@@ -176,13 +324,11 @@ aboutModal?.addEventListener('click', (e) => {
 });
 
 // Theme Toggle
-let currentTheme = localStorage.getItem('calc-theme') || 'dark';
-document.documentElement.setAttribute('data-theme', currentTheme);
-
 themeToggleBtn?.addEventListener('click', () => {
   currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', currentTheme);
   localStorage.setItem('calc-theme', currentTheme);
+  updateUI();
 });
 
 // Initial Render

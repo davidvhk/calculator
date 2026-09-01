@@ -1,4 +1,5 @@
-export type Operator = '+' | '-' | '×' | '÷' | '%';
+export type Operator = '+' | '-' | '×' | '÷' | '%' | '^';
+export type AngleMode = 'deg' | 'rad';
 
 export interface CalculatorState {
   currentValue: string;
@@ -7,6 +8,7 @@ export interface CalculatorState {
   waitingForNewOperand: boolean;
   history: string[];
   memory: number | null;
+  angleMode: AngleMode;
 }
 
 export class CalculatorEngine {
@@ -23,7 +25,8 @@ export class CalculatorEngine {
       operator: null,
       waitingForNewOperand: false,
       history: [],
-      memory: null
+      memory: null,
+      angleMode: 'deg'
     };
   }
 
@@ -88,6 +91,10 @@ export class CalculatorEngine {
       this.state.currentValue = digit;
       this.state.waitingForNewOperand = false;
     } else {
+      const digitsOnly = this.state.currentValue.replace(/[-.]/g, '');
+      if (digitsOnly.length >= 15) {
+        return this.getState();
+      }
       this.state.currentValue =
         this.state.currentValue === '0' ? digit : this.state.currentValue + digit;
     }
@@ -204,6 +211,184 @@ export class CalculatorEngine {
     return this.getState();
   }
 
+  public setAngleMode(mode: AngleMode): CalculatorState {
+    this.state.angleMode = mode;
+    return this.getState();
+  }
+
+  public toggleAngleMode(): CalculatorState {
+    this.state.angleMode = this.state.angleMode === 'deg' ? 'rad' : 'deg';
+    return this.getState();
+  }
+
+  public inputPi(): CalculatorState {
+    this.state.currentValue = this.formatNumber(Math.PI);
+    this.state.waitingForNewOperand = true;
+    return this.getState();
+  }
+
+  public inputE(): CalculatorState {
+    this.state.currentValue = this.formatNumber(Math.E);
+    this.state.waitingForNewOperand = true;
+    return this.getState();
+  }
+
+  public random(): CalculatorState {
+    const rand = parseFloat(Math.random().toFixed(4));
+    this.state.currentValue = this.formatNumber(rand);
+    this.state.waitingForNewOperand = true;
+    return this.getState();
+  }
+
+  public square(): CalculatorState {
+    const val = parseFloat(this.state.currentValue);
+    if (isNaN(val) || this.state.currentValue === 'Error') return this.getState();
+    this.state.currentValue = this.formatNumber(val * val);
+    this.state.waitingForNewOperand = true;
+    return this.getState();
+  }
+
+  public cube(): CalculatorState {
+    const val = parseFloat(this.state.currentValue);
+    if (isNaN(val) || this.state.currentValue === 'Error') return this.getState();
+    this.state.currentValue = this.formatNumber(val * val * val);
+    this.state.waitingForNewOperand = true;
+    return this.getState();
+  }
+
+  public sqrt(): CalculatorState {
+    const val = parseFloat(this.state.currentValue);
+    if (isNaN(val) || val < 0 || this.state.currentValue === 'Error') {
+      this.state.currentValue = 'Error';
+      this.state.waitingForNewOperand = true;
+      return this.getState();
+    }
+    this.state.currentValue = this.formatNumber(Math.sqrt(val));
+    this.state.waitingForNewOperand = true;
+    return this.getState();
+  }
+
+  public cbrt(): CalculatorState {
+    const val = parseFloat(this.state.currentValue);
+    if (isNaN(val) || this.state.currentValue === 'Error') return this.getState();
+    this.state.currentValue = this.formatNumber(Math.cbrt(val));
+    this.state.waitingForNewOperand = true;
+    return this.getState();
+  }
+
+  public sin(): CalculatorState {
+    const val = parseFloat(this.state.currentValue);
+    if (isNaN(val) || this.state.currentValue === 'Error') return this.getState();
+    const rad = this.state.angleMode === 'deg' ? (val * Math.PI) / 180 : val;
+    // Fix precision for 180, 360 deg
+    const res = this.state.angleMode === 'deg' && val % 180 === 0 ? 0 : Math.sin(rad);
+    this.state.currentValue = this.formatNumber(res);
+    this.state.waitingForNewOperand = true;
+    return this.getState();
+  }
+
+  public cos(): CalculatorState {
+    const val = parseFloat(this.state.currentValue);
+    if (isNaN(val) || this.state.currentValue === 'Error') return this.getState();
+    const rad = this.state.angleMode === 'deg' ? (val * Math.PI) / 180 : val;
+    // Fix precision for 90, 270 deg
+    const res = this.state.angleMode === 'deg' && (val - 90) % 180 === 0 ? 0 : Math.cos(rad);
+    this.state.currentValue = this.formatNumber(res);
+    this.state.waitingForNewOperand = true;
+    return this.getState();
+  }
+
+  public tan(): CalculatorState {
+    const val = parseFloat(this.state.currentValue);
+    if (isNaN(val) || this.state.currentValue === 'Error') return this.getState();
+    if (this.state.angleMode === 'deg' && (val - 90) % 180 === 0) {
+      this.state.currentValue = 'Error';
+      this.state.waitingForNewOperand = true;
+      return this.getState();
+    }
+    const rad = this.state.angleMode === 'deg' ? (val * Math.PI) / 180 : val;
+    const res = this.state.angleMode === 'deg' && val % 180 === 0 ? 0 : Math.tan(rad);
+    this.state.currentValue = this.formatNumber(res);
+    this.state.waitingForNewOperand = true;
+    return this.getState();
+  }
+
+  public ln(): CalculatorState {
+    const val = parseFloat(this.state.currentValue);
+    if (isNaN(val) || val <= 0 || this.state.currentValue === 'Error') {
+      this.state.currentValue = 'Error';
+      this.state.waitingForNewOperand = true;
+      return this.getState();
+    }
+    this.state.currentValue = this.formatNumber(Math.log(val));
+    this.state.waitingForNewOperand = true;
+    return this.getState();
+  }
+
+  public log10(): CalculatorState {
+    const val = parseFloat(this.state.currentValue);
+    if (isNaN(val) || val <= 0 || this.state.currentValue === 'Error') {
+      this.state.currentValue = 'Error';
+      this.state.waitingForNewOperand = true;
+      return this.getState();
+    }
+    this.state.currentValue = this.formatNumber(Math.log10(val));
+    this.state.waitingForNewOperand = true;
+    return this.getState();
+  }
+
+  public exp(): CalculatorState {
+    const val = parseFloat(this.state.currentValue);
+    if (isNaN(val) || this.state.currentValue === 'Error') return this.getState();
+    this.state.currentValue = this.formatNumber(Math.exp(val));
+    this.state.waitingForNewOperand = true;
+    return this.getState();
+  }
+
+  public exp10(): CalculatorState {
+    const val = parseFloat(this.state.currentValue);
+    if (isNaN(val) || this.state.currentValue === 'Error') return this.getState();
+    this.state.currentValue = this.formatNumber(Math.pow(10, val));
+    this.state.waitingForNewOperand = true;
+    return this.getState();
+  }
+
+  public factorial(): CalculatorState {
+    const val = parseFloat(this.state.currentValue);
+    if (isNaN(val) || val < 0 || !Number.isInteger(val) || val > 170 || this.state.currentValue === 'Error') {
+      this.state.currentValue = 'Error';
+      this.state.waitingForNewOperand = true;
+      return this.getState();
+    }
+    let res = 1;
+    for (let i = 2; i <= val; i++) {
+      res *= i;
+    }
+    this.state.currentValue = this.formatNumber(res);
+    this.state.waitingForNewOperand = true;
+    return this.getState();
+  }
+
+  public reciprocal(): CalculatorState {
+    const val = parseFloat(this.state.currentValue);
+    if (isNaN(val) || val === 0 || this.state.currentValue === 'Error') {
+      this.state.currentValue = 'Error';
+      this.state.waitingForNewOperand = true;
+      return this.getState();
+    }
+    this.state.currentValue = this.formatNumber(1 / val);
+    this.state.waitingForNewOperand = true;
+    return this.getState();
+  }
+
+  public abs(): CalculatorState {
+    const val = parseFloat(this.state.currentValue);
+    if (isNaN(val) || this.state.currentValue === 'Error') return this.getState();
+    this.state.currentValue = this.formatNumber(Math.abs(val));
+    this.state.waitingForNewOperand = true;
+    return this.getState();
+  }
+
   private executeCalculation(a: number, b: number, operator: Operator): string {
     let res: number;
     switch (operator) {
@@ -223,6 +408,9 @@ export class CalculatorEngine {
       case '%':
         res = a % b;
         break;
+      case '^':
+        res = Math.pow(a, b);
+        break;
       default:
         return 'Error';
     }
@@ -232,6 +420,11 @@ export class CalculatorEngine {
 
   private formatNumber(num: number): string {
     if (isNaN(num) || !isFinite(num)) return 'Error';
+    if (num === 0) return '0';
+    const abs = Math.abs(num);
+    if (abs >= 1e15 || (abs < 1e-6 && abs > 0)) {
+      return parseFloat(num.toPrecision(10)).toString();
+    }
     // Precision fix for floating points like 0.1 + 0.2
     const precisionRounded = parseFloat(num.toPrecision(12));
     return precisionRounded.toString();
