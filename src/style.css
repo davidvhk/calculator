@@ -1,4 +1,4 @@
-:root {
+:root, [data-theme="dark"] {
   --bg-color: #0f111a;
   --card-bg: #1a1c23;
   --display-bg: #13141b;
@@ -36,6 +36,91 @@
   --key-equals-hover: #0369a1;
   --key-text: #1f2937;
   --shadow-color: rgba(0, 0, 0, 0.08);
+}
+
+/* 📼 Retro Casio / Solar 1980s Vintage LCD Theme */
+[data-theme="retro"] {
+  --bg-color: #2b2e30;
+  --card-bg: #d7d1c5;
+  --display-bg: #9ea98a;
+  --modal-bg: #eae5db;
+  --text-main: #192211;
+  --text-muted: #4a5440;
+  --border-color: #bab3a4;
+  --key-num-bg: #ece8de;
+  --key-num-hover: #ded8cb;
+  --key-func-bg: #c5beaf;
+  --key-func-hover: #b5ad9d;
+  --key-op-bg: #3d4349;
+  --key-op-hover: #2f3439;
+  --key-equals-bg: #d9532f;
+  --key-equals-hover: #be4321;
+  --key-text: #192211;
+  --shadow-color: rgba(0, 0, 0, 0.35);
+}
+
+[data-theme="retro"] .display-container {
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.5);
+  border: 2px solid #848e72;
+}
+
+[data-theme="retro"] .main-display,
+[data-theme="retro"] .history-display {
+  font-family: 'Courier New', Courier, monospace, monospace;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+[data-theme="retro"] .key.op,
+[data-theme="retro"] .key.equals {
+  color: #ffffff;
+}
+
+/* 🌑 OLED Midnight (Pure Pitch Black) */
+[data-theme="oled"] {
+  --bg-color: #000000;
+  --card-bg: #000000;
+  --display-bg: #0a0a0a;
+  --modal-bg: #111111;
+  --text-main: #ffffff;
+  --text-muted: #888888;
+  --border-color: #222222;
+  --key-num-bg: #141414;
+  --key-num-hover: #222222;
+  --key-func-bg: #1e1e1e;
+  --key-func-hover: #2c2c2c;
+  --key-op-bg: #2563eb;
+  --key-op-hover: #1d4ed8;
+  --key-equals-bg: #10b981;
+  --key-equals-hover: #059669;
+  --key-text: #ffffff;
+  --shadow-color: rgba(0, 0, 0, 0.9);
+}
+
+/* ⚡ Cyberpunk Neon 80s */
+[data-theme="cyberpunk"] {
+  --bg-color: #090514;
+  --card-bg: #150d2a;
+  --display-bg: #0d071d;
+  --modal-bg: #1d1238;
+  --text-main: #00f0ff;
+  --text-muted: #c084fc;
+  --border-color: #a855f744;
+  --key-num-bg: #251347;
+  --key-num-hover: #371a69;
+  --key-func-bg: #3b186b;
+  --key-func-hover: #532096;
+  --key-op-bg: #ff007f;
+  --key-op-hover: #d6006b;
+  --key-equals-bg: #ffd600;
+  --key-equals-hover: #e6c000;
+  --key-text: #ffffff;
+  --shadow-color: rgba(255, 0, 127, 0.15);
+}
+
+[data-theme="cyberpunk"] .key.equals {
+  color: #12052b;
+  font-weight: 800;
 }
 
 [data-theme="light"] .key.op,

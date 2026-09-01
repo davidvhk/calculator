@@ -87,6 +87,36 @@ const MOON_ICON_SVG = `<svg viewBox="0 0 24 24" width="18" height="18" fill="non
   <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
 </svg>`;
 
+const RETRO_ICON_SVG = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="4" y="2" width="16" height="20" rx="2"/>
+  <line x1="8" y1="6" x2="16" y2="6"/>
+  <circle cx="8" cy="11" r="1"/><circle cx="12" cy="11" r="1"/><circle cx="16" cy="11" r="1"/>
+  <circle cx="8" cy="15" r="1"/><circle cx="12" cy="15" r="1"/><circle cx="16" cy="15" r="1"/>
+  <circle cx="8" cy="19" r="1"/><circle cx="12" cy="19" r="1"/><circle cx="16" cy="19" r="1"/>
+</svg>`;
+
+const OLED_ICON_SVG = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+</svg>`;
+
+const CYBERPUNK_ICON_SVG = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+</svg>`;
+
+interface ThemeConfig {
+  id: string;
+  name: string;
+  icon: string;
+}
+
+const THEMES: ThemeConfig[] = [
+  { id: 'dark', name: 'Modern Dark', icon: SUN_ICON_SVG },
+  { id: 'retro', name: 'Vintage 80s LCD', icon: RETRO_ICON_SVG },
+  { id: 'light', name: 'Modern Light', icon: MOON_ICON_SVG },
+  { id: 'oled', name: 'OLED Midnight', icon: OLED_ICON_SVG },
+  { id: 'cyberpunk', name: 'Cyberpunk Neon', icon: CYBERPUNK_ICON_SVG }
+];
+
 // Mode State Management (Basic vs Scientific)
 let currentMode = localStorage.getItem('calc-mode') || 'basic';
 document.documentElement.setAttribute('data-mode', currentMode);
@@ -230,8 +260,10 @@ function updateUI(): void {
 
   // Header Theme Toggle Icon
   if (themeToggleBtn) {
-    themeToggleBtn.innerHTML = currentTheme === 'dark' ? SUN_ICON_SVG : MOON_ICON_SVG;
-    themeToggleBtn.title = currentTheme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme';
+    const activeTheme = THEMES.find((t) => t.id === currentTheme) || THEMES[0];
+    themeToggleBtn.innerHTML = activeTheme.icon;
+    themeToggleBtn.title = `Theme: ${activeTheme.name} (Click to change)`;
+    themeToggleBtn.setAttribute('aria-label', `Theme: ${activeTheme.name}`);
   }
 
   // Persist History
@@ -759,14 +791,17 @@ aboutModal?.addEventListener('click', (e) => {
   }
 });
 
-// Theme Toggle
+// Theme Toggle (Cycles through: Modern Dark -> Vintage 80s LCD -> Modern Light -> OLED Midnight -> Cyberpunk Neon)
 themeToggleBtn?.addEventListener('click', () => {
-  currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  const currentIndex = THEMES.findIndex((t) => t.id === currentTheme);
+  const nextTheme = THEMES[(currentIndex + 1) % THEMES.length];
+  currentTheme = nextTheme.id;
   document.documentElement.setAttribute('data-theme', currentTheme);
   localStorage.setItem('calc-theme', currentTheme);
   triggerHaptic();
   playKeySound();
   updateUI();
+  showToast(`Theme: ${nextTheme.name}`);
 });
 
 // Initial Render
