@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/btn_equals_pressed">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/btn_equals_bg" />
+            <corners android:radius="14dp" />
+        </shape>
+    </item>
+</ripple>

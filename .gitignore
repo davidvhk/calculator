@@ -15,10 +15,31 @@ dist-ssr
 .dist_old
 dev-dist
 
+# Android & APK Build Outputs
+*.apk
+*.aab
+*.aar
+apk/
+calculator-*.apk
+calculator-pwa-*.tar.gz
+
+# Gradle & Android Build Artifacts
+.gradle/
+build/
+android/local.properties
+android/.gradle/
+android/build/
+android/app/build/
+android/capacitor-cordova-android-plugins/build/
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/assets/capacitor.plugins.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
 .idea
+*.iml
 .DS_Store
 *.suo
 *.ntvs*

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#13141b</color>
+    <color name="colorPrimaryDark">#000000</color>
+    <color name="colorAccent">#4f46e5</color>
+    <color name="bg_dark">#000000</color>
+    <color name="display_bg">#111318</color>
+    <color name="text_main">#ffffff</color>
+    <color name="text_secondary">#8e95a5</color>
+    <color name="btn_num_bg">#232634</color>
+    <color name="btn_num_pressed">#353a4e</color>
+    <color name="btn_func_bg">#363a4f</color>
+    <color name="btn_func_pressed">#494e6b</color>
+    <color name="btn_op_bg">#ff6b00</color>
+    <color name="btn_op_pressed">#e05e00</color>
+    <color name="btn_equals_bg">#06b6d4</color>
+    <color name="btn_equals_pressed">#0891b2</color>
+</resources>
