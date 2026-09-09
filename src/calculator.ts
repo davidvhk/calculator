@@ -61,10 +61,12 @@ export class CalculatorEngine {
   public clearAll(): CalculatorState {
     const currentMemory = this.state.memory;
     const currentHistory = this.state.history;
+    const currentAngleMode = this.state.angleMode;
     this.stack = [];
     this.state = this.getInitialState();
     this.state.memory = currentMemory;
     this.state.history = currentHistory;
+    this.state.angleMode = currentAngleMode;
     return this.getState();
   }
 

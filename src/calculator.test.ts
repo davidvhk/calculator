@@ -200,6 +200,11 @@ describe('CalculatorEngine', () => {
       expect(calc.getState().angleMode).toBe('deg');
       calc.toggleAngleMode();
       expect(calc.getState().angleMode).toBe('rad');
+
+      // clearAll should preserve the user's active angleMode (RAD)
+      calc.clearAll();
+      expect(calc.getState().angleMode).toBe('rad');
+
       calc.setAngleMode('deg');
       expect(calc.getState().angleMode).toBe('deg');
     });
