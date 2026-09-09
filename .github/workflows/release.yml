@@ -3,6 +3,11 @@ name: Release & Deployment
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'VERSION'
     tags:
       - 'v*'
       - '[0-9]+.[0-9]+.[0-9]+'
@@ -17,6 +22,20 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Determine Version Tag
+        id: get_version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG_NAME="${{ github.ref_name }}"
+          else
+            VERSION_VAL=$(cat VERSION | tr -d ' \n\r')
+            TAG_NAME="v${VERSION_VAL}"
+          fi
+          echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
+          echo "Building Release for Tag: ${TAG_NAME}"
 
       - name: Setup Java JDK
         uses: actions/setup-java@v6
@@ -37,19 +56,20 @@ jobs:
         run: npm run cap:build
 
       - name: Package Web Dist Bundle
-        run: tar -czf calculator-pwa-${{ github.ref_name }}.tar.gz -C dist .
+        run: tar -czf calculator-pwa-${{ steps.get_version.outputs.tag_name }}.tar.gz -C dist .
 
       - name: Build Android APK
         working-directory: android
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug
-          cp app/build/outputs/apk/debug/app-debug.apk ../calculator-${{ github.ref_name }}.apk
+          cp app/build/outputs/apk/debug/app-debug.apk ../calculator-${{ steps.get_version.outputs.tag_name }}.apk
 
-      - name: Create GitHub Release
+      - name: Create or Update GitHub Release
         uses: softprops/action-gh-release@v3
         with:
+          tag_name: ${{ steps.get_version.outputs.tag_name }}
           files: |
-            calculator-pwa-${{ github.ref_name }}.tar.gz
-            calculator-${{ github.ref_name }}.apk
+            calculator-pwa-${{ steps.get_version.outputs.tag_name }}.tar.gz
+            calculator-${{ steps.get_version.outputs.tag_name }}.apk
           generate_release_notes: true
