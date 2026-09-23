@@ -22,7 +22,7 @@
   },
   "devDependencies": {
     "@capacitor/android": "^8.5.1",
-    "@capacitor/cli": "^8.5.1",
+    "@capacitor/cli": "^8.5.2",
     "@capacitor/core": "^8.5.1",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
